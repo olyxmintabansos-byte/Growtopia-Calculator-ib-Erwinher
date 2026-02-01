@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Growtopia Calculator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #bfe3ff;
+    }
+    .header {
+      background: #ffffff;
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 20px;
+    }
+    .card {
+      background: #eaf6ff;
+      border-radius: 16px;
+      padding: 20px 10px;
+      text-align: center;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 10px;
+    }
+    }
+    .card:hover {
+      background: #d8efff;
+    }
+    .page {
+      display: none;
+      padding: 20px;
+    }
+    .page.active {
+      display: block;
+    }
+    .input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0 20px 0;
+      border-radius: 8px;
+      border: none;
+    }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 20px;
+      border: none;
+      background: white;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .back {
+      margin-bottom: 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">GROWTOPIA CALCULATOR</div>
+
+  <!-- HOME -->
+  <div id="home" class="page active">
+    <div class="grid">
+      <div class="card"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/2909/2909590.png"><div>Bountiful</div></div>
+      <div class="card" onclick="openPage('break')"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/868/868786.png"><div>Break Only</div></div>
+      <div class="card"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/2909/2909653.png"><div>Farmable</div></div>
+      <div class="card"><img class="icon" src="https://cdn-icons-png.flaticon.com/512/2909/2909589.png"><div>Harvest Only</div></div>
+    </div>
+  </div>
+
+  <!-- BREAK ONLY PAGE -->
+  <div id="break" class="page">
+    <div class="back" onclick="openPage('home')">← Back</div>
+
+    <h2 style="text-align:center;margin-bottom:20px;">Break Blocks Calculator</h2>
+
+    <label>Number of Blocks</label>
+    <input class="input" id="blocks" type="number" value="100" />
+
+    <label>Rarity of the Blocks</label>
+    <input class="input" id="rarity" type="number" value="100" />
+
+    <div class="row"><span>Use Galaxy Skins</span><input type="checkbox" /></div>
+
+    <label>Ancestral Tesseract of Dimensions Level</label>
+    <select class="input">
+      <option>Level 0</option>
+      <option>Level 1</option>
+      <option>Level 2</option>
+    </select>
+
+    <div class="row"><span>Use Buddy's Block Head</span><input type="checkbox" /></div>
+    <div class="row"><span>Use Lucky Clover</span><input type="checkbox" /></div>
+    <div class="row"><span>Use Winter Wishing Star</span><input type="checkbox" /></div>
+    <div class="row"><span>Use Guild Potion Blocks</span><input type="checkbox" /></div>
+
+    <label>Framework Level</label>
+    <select class="input">
+      <option>Level 1</option>
+      <option>Level 2</option>
+      <option>Level 3</option>
+    </select>
+
+    <button class="btn" onclick="calculateBreak()">Calculate</button>
+
+    <div id="output" style="margin-top:20px;font-size:18px;">
+      <div>Final Seeds: —</div>
+      <div>Gems Gained: —</div>
+    </div>
+  </div>
+
+  <script>
+    function openPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+    }
+
+    // Approximation table (per 100 blocks)
+    const rarityTable = {
+      1: 22,
+      5: 44,
+      10: 71,
+      20: 125,
+      25: 153,
+      30: 174,
+      40: 269,
+      50: 378,
+      60: 501,
+      70: 638,
+      75: 711,
+      80: 788,
+      90: 951,
+      100: 1128
+    };
+
+    function interpolate(rarity) {
+      const keys = Object.keys(rarityTable).map(Number).sort((a,b)=>a-b);
+      if (rarityTable[rarity]) return rarityTable[rarity];
+
+      let lower = keys[0], upper = keys[keys.length-1];
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (rarity > keys[i] && rarity < keys[i+1]) {
+          lower = keys[i];
+          upper = keys[i+1];
+          break;
+        }
+      }
+
+      const ratio = (rarity - lower) / (upper - lower);
+      return rarityTable[lower] + ratio * (rarityTable[upper] - rarityTable[lower]);
+    }
+
+    function calculateBreak() {
+      const inputs = document.querySelectorAll('#break input');
+      const blocks = Number(inputs[0].value);
+      const rarity = Number(inputs[1].value);
+
+      if (!blocks || !rarity) {
+        document.getElementById('output').innerText = 'Please fill all fields';
+        return;
+      }
+
+      const gemsPer100 = interpolate(rarity);
+      const gems = Math.round((blocks / 100) * gemsPer100);
+      const seeds = Math.floor(blocks * 0.2727);
+
+      document.getElementById('output').innerText = `${gems} Gems | ${seeds} Seeds (approx)`;
+    }
+  </script>
+
+</body>
+</html>
